@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Akij Stuff mass 2</title>
+<title>Akij Stuff mass 2 v4.7</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f0f4f8; color: #1a202c; }
@@ -92,6 +92,8 @@
   .settings-box { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
   .settings-box h3 { margin: 0 0 12px 0; color: #2d3748; font-size: 1.05rem; }
   .version-text { text-align: center; font-size: 0.75rem; color: #a0aec0; margin-top: 15px; }
+  .developer-text { text-align: center; font-size: 0.85rem; color: #2b6cb0; margin-top: 8px; font-weight: 600; background: #ebf8ff; padding: 6px 12px; border-radius: 12px; display: inline-block; }
+  .login-box .developer-text { display: block; margin: 8px auto 0 auto; width: fit-content; }
   .logout-bar { text-align: right; margin-bottom: 10px; }
   .logout-bar button { background: #e53e3e; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; font-weight: 600; }
   .logout-bar button:hover { background: #c53030; }
@@ -104,7 +106,7 @@
 <!-- CACHE BUST: Force reload if old version detected -->
 <script>
 (function() {
-  var APP_VERSION = '4.6';
+  var APP_VERSION = '4.7';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -145,7 +147,8 @@
     <div style="text-align:center;margin-top:12px;">
       <button onclick="resetLogin()" style="background:none;border:none;color:#e53e3e;text-decoration:underline;cursor:pointer;font-size:0.85rem;">🔄 ডিফল্টে রিসেট করুন</button>
     </div>
-    <p class="version-text">v4.6 | ডিফল্ট: manager / manager (নিজে লিখুন)</p>
+    <p class="version-text">v4.7 | ডিফল্ট: manager / manager (নিজে লিখুন)</p>
+    <p class="developer-text">👨‍💻 Developer: Nasim Uddin</p>
   </div>
 </div>
 
@@ -356,10 +359,14 @@
 </div>
 </div>
 
+<div style="text-align:center;padding:15px;color:#a0aec0;font-size:0.75rem;">
+  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v4.7
+</div>
+
 <script>
 // ========== CACHE BUST ==========
 (function() {
-  var APP_VERSION = '4.6';
+  var APP_VERSION = '4.7';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -503,7 +510,7 @@ function applyRoleUI() {
 
   if (currentRole === 'admin') {
     adminEls.forEach(el => el.classList.remove('hidden'));
-    memberEls.forEach(el => el.classList.add('hidden'));
+    memberEls.forEach(el => el.classList.remove('hidden'));
     tabs.forEach(t => t.style.display = '');
     if (logoutBar) logoutBar.style.display = 'block';
     const welcome = $('memberWelcome');
