@@ -183,7 +183,7 @@
       <h2>সদস্য যোগ করুন</h2>
       <label>নাম *</label>
       <input type="text" id="memberName" placeholder="যেমন: রাহুল">
-      <label>বিভাগ/ডপার্টমেন্ট *</label>
+      <label>বিভাগ/ডিপার্টমেন্ট *</label>
       <input type="text" id="memberDept" placeholder="যেমন: প্রোডাকশন, HR, অ্যাকাউন্টস">
       <label>মোবাইল নম্বর</label>
       <input type="text" id="memberPhone" placeholder="01XXXXXXXXX">
@@ -195,7 +195,7 @@
       <div id="memberList"></div>
     </div>
     <div class="card admin-only">
-      <h2>🔐 সদস্য লগইন থ্য (আইডি/পাসওয়ার্ড সেট করুন)</h2>
+      <h2>🔐 সদস্য লগইন তথ্য (আইডি/পাসওয়ার্ড সেট করুন)</h2>
       <div class="info-box">নিচের তালিকা থেকে "সম্পাদনা" বাটন চেপে প্রতিটি সদস্যের জন্য লগইন আইডি ও পাসওয়ার্ড সেট করুন। আইডি/পাসওয়ার্ড সেট করা সদস্যরা নিজে লগইন করে হিসাব দেখতে পারবে।</div>
       <div id="memberLoginInfo"></div>
     </div>
@@ -226,7 +226,7 @@
       <label>বাজারকারী</label>
       <select id="bazarPerson"></select>
       <label>বিবরণ</label>
-      <input type="text" id="bazarDesc" placeholder="যমন: চাল, ডাল, সজি">
+      <input type="text" id="bazarDesc" placeholder="যেমন: চাল, ডাল,সবজি">
       <label>টাকা</label>
       <input type="number" id="bazarAmount" placeholder="0">
       <button class="action" onclick="addBazar()">বাজার যোগ করুন</button>
@@ -264,7 +264,7 @@
 
   <div id="report" class="section">
     <div class="card">
-      <h2>মাসি হিসাব</h2>
+      <h2>মাসিক হিসাব</h2>
       <div class="month-selector">
         <select id="reportMonth" onchange="renderReport()"></select>
         <button class="action small no-print" onclick="window.print()">🖨️ প্রিন্ট</button>
@@ -339,12 +339,12 @@
       </div>
       <div class="settings-box">
         <h3>🙋 সদস্য লগইন পাসওয়ার্ড সেট/পরিবর্তন</h3>
-        <div class="info-box">নিচে কনো সদস্য বেছে নিয়ে তার লগইন আইডি ও পাসওয়ার্ড সেট বা পরিবর্তন করুন।</div>
+        <div class="info-box">নিচে কোনো সদস্য বেছে নিয়ে তার লগইন আইডি ও পাসওয়ার্ড সেট বা পরিবর্তন করুন।</div>
         <label>সদস্য বাছুন</label>
         <select id="settingsMemberSelect"></select>
         <label>নতুন আইডি</label>
         <input type="text" id="settingsMemberNewId" placeholder="নতুন আইডি">
-        <label>নতুন াসওয়ার্ড</label>
+        <label>নতুন পাসওয়ার্ড</label>
         <input type="text" id="settingsMemberNewPass" placeholder="নতুন পাসওয়ার্ড">
         <button class="action secondary" onclick="changeMemberCredentialsFromSettings()">💾 সদস্য পাসওয়ার্ড সেভ করুন</button>
         <p id="memberCredMsg" style="text-align:center;margin-top:10px;font-weight:600;"></p>
