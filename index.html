@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Akij Stuff mass 2 v4.9</title>
+<title>Akij Stuff mass 2 v5.0</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f0f4f8; color: #1a202c; }
@@ -106,7 +106,7 @@
 <!-- CACHE BUST: Force reload if old version detected -->
 <script>
 (function() {
-  var APP_VERSION = '4.9';
+  var APP_VERSION = '5.0';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -147,7 +147,7 @@
     <div style="text-align:center;margin-top:12px;">
       <button onclick="resetLogin()" style="background:none;border:none;color:#e53e3e;text-decoration:underline;cursor:pointer;font-size:0.85rem;">🔄 ডিফল্টে রিসেট করুন</button>
     </div>
-    <p class="version-text">v4.9 | ডিল্ট: manager / manager (নিজে লিখুন)</p>
+    <p class="version-text">v5.0 | ডিফল্ট: manager / manager (নিজে লিখুন)</p>
     <p class="developer-text">👨‍💻 Developer: Nasim Uddin</p>
   </div>
 </div>
@@ -176,6 +176,7 @@
     <button class="tab" onclick="showTab('hisab')">বিভাগ হিসাব</button>
     <button class="tab" onclick="showTab('monthend')">মাস শেষ</button>
     <button class="tab" onclick="showTab('history')">সব মাস</button>
+    <button class="tab" onclick="showTab('summary')">সারসংক্ষেপ</button>
     <button class="tab" onclick="showTab('settings')">⚙️</button>
   </div>
 
@@ -321,6 +322,18 @@
     </div>
   </div>
 
+  <div id="summary" class="section">
+    <div class="card member-view">
+      <span class="read-only-badge">📖 শুধু দেখার জন্য</span>
+      <h2>📊 দৈনিক সারসংক্ষেপ</h2>
+      <div class="month-selector">
+        <select id="summaryMonth" onchange="renderSummary()"></select>
+        <button class="action small no-print" onclick="window.print()">🖨️ প্রিন্ট</button>
+      </div>
+      <div id="summaryContent"></div>
+    </div>
+  </div>
+
   <div id="settings" class="section">
     <div class="card admin-only">
       <h2>⚙️ ম্যানেজার সেটিংস</h2>
@@ -361,7 +374,7 @@
 </div>
 
 <div style="text-align:center;padding:15px;color:#a0aec0;font-size:0.75rem;">
-  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v4.9
+  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v5.0
 </div>
 
 <script>
@@ -441,7 +454,7 @@ if (useFirebase && db) {
 
 // ========== CACHE BUST ==========
 (function() {
-  var APP_VERSION = '4.9';
+  var APP_VERSION = '5.0';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -696,7 +709,7 @@ function populateMonths() {
   Object.keys(data.bazar).forEach(d => months.add(formatMonth(d)));
   Object.keys(data.deposits).forEach(d => months.add(formatMonth(d)));
   const sorted = Array.from(months).sort();
-  const ids = ['mealMonth','bazarMonth','depositMonth','reportMonth','hisabMonth'];
+  const ids = ['mealMonth','bazarMonth','depositMonth','reportMonth','hisabMonth','summaryMonth'];
   ids.forEach(id => {
     const sel = $(id);
     if (!sel) return;
@@ -962,6 +975,97 @@ function calcRange(startDate, endDate) {
   return { totalMeals, totalBazar, mealRate, personMeals, personDeposits, personCost, personBalance, bazarDetails };
 }
 
+// ========== SUMMARY (সারসংক্ষেপ) ==========
+function renderSummary() {
+  const month = $('summaryMonth').value;
+  const allDates = Object.keys(data.meals).filter(d => formatMonth(d) === month).sort();
+
+  if (!allDates.length) {
+    $('summaryContent').innerHTML = '<p>এই মাসে কোনো মিল এন্ট্রি নেই।</p>';
+    return;
+  }
+
+  // Calculate totals
+  let totalMealsOn = 0;
+  let totalMealsOff = 0;
+  let dailyRows = '';
+
+  allDates.forEach(d => {
+    let dayOn = 0;
+    let dayOff = 0;
+    let onNames = [];
+    let offNames = [];
+
+    data.members.forEach((m, i) => {
+      const v = data.meals[d][i] || 0;
+      if (v == 1) {
+        dayOn++;
+        totalMealsOn++;
+        onNames.push(m.name);
+      } else {
+        dayOff++;
+        totalMealsOff++;
+        offNames.push(m.name);
+      }
+    });
+
+    dailyRows += `<tr>
+      <td style="font-weight:600;">${d}</td>
+      <td class="ate-yes">${dayOn}</td>
+      <td class="ate-no">${dayOff}</td>
+      <td style="font-size:0.85rem;text-align:left;"><span class="ate-yes">✓ ${onNames.join(', ')}</span></td>
+      <td style="font-size:0.85rem;text-align:left;"><span class="ate-no">✗ ${offNames.join(', ')}</span></td>
+    </tr>`;
+  });
+
+  // Calculate money
+  let totalDeposit = 0;
+  let totalBazar = 0;
+  const depositDates = Object.keys(data.deposits).filter(d => formatMonth(d) === month).sort();
+  const bazarDates = Object.keys(data.bazar).filter(d => formatMonth(d) === month).sort();
+
+  depositDates.forEach(d => {
+    data.deposits[d].forEach(dep => totalDeposit += dep.amount);
+  });
+
+  bazarDates.forEach(d => {
+    data.bazar[d].forEach(b => totalBazar += b.amount);
+  });
+
+  const remaining = totalDeposit - totalBazar;
+
+  $('summaryContent').innerHTML = `
+    <div class="summary-box" style="margin-bottom:20px;">
+      <div class="summary-item"><h3>মোট জমা</h3><p>${totalDeposit.toFixed(2)} টাকা</p></div>
+      <div class="summary-item"><h3>মোট খরচ</h3><p>${totalBazar.toFixed(2)} টাকা</p></div>
+      <div class="summary-item" style="${remaining >= 0 ? 'border-left-color:#38a169;background:#f0fff4;' : 'border-left-color:#e53e3e;background:#fff5f5;'}"><h3>অবশিষ্ট</h3><p class="${remaining >= 0 ? 'advance' : 'due'}">${remaining.toFixed(2)} টাকা</p></div>
+      <div class="summary-item" style="border-left-color:#805ad5;"><h3>মোট মিল (চালু)</h3><p>${totalMealsOn} টি</p></div>
+      <div class="summary-item" style="border-left-color:#a0aec0;"><h3>মোট মিল (বন্ধ)</h3><p>${totalMealsOff} টি</p></div>
+      <div class="summary-item" style="border-left-color:#d69e2e;"><h3>সর্বমোট মিল</h3><p>${totalMealsOn + totalMealsOff} টি</p></div>
+    </div>
+
+    <h3 style="margin-top:20px;">📅 দৈনিক বিবরণ</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <tr>
+          <th>তারিখ</th>
+          <th>মিল চালু</th>
+          <th>মিল বন্ধ</th>
+          <th style="text-align:left;">মিল চালু (সদস্য)</th>
+          <th style="text-align:left;">মিল বন্ধ (সদস্য)</th>
+        </tr>
+        ${dailyRows}
+        <tr style="font-weight:700;background:#ebf8ff;">
+          <td>সর্বমোট</td>
+          <td class="ate-yes">${totalMealsOn}</td>
+          <td class="ate-no">${totalMealsOff}</td>
+          <td colspan="2"></td>
+        </tr>
+      </table>
+    </div>
+  `;
+}
+
 // ========== REPORT ==========
 function renderReport() {
   const month = $('reportMonth').value;
@@ -1191,6 +1295,7 @@ function showTab(name) {
   if (name === 'bazar') renderBazarTable();
   if (name === 'deposit') renderDepositTable();
   if (name === 'settings') { updateSettingsDisplay(); populateSettingsMemberSelect(); }
+  if (name === 'summary') renderSummary();
 }
 
 // ========== INIT ==========
