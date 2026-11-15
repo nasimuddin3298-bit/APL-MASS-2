@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Akij Stuff mass 2 v5.0</title>
+<title>Akij Stuff mass 2 v5.1</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f0f4f8; color: #1a202c; }
@@ -106,7 +106,7 @@
 <!-- CACHE BUST: Force reload if old version detected -->
 <script>
 (function() {
-  var APP_VERSION = '5.0';
+  var APP_VERSION = '5.1';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -147,7 +147,7 @@
     <div style="text-align:center;margin-top:12px;">
       <button onclick="resetLogin()" style="background:none;border:none;color:#e53e3e;text-decoration:underline;cursor:pointer;font-size:0.85rem;">🔄 ডিফল্টে রিসেট করুন</button>
     </div>
-    <p class="version-text">v5.0 | ডিফল্ট: manager / manager (নিজে লিখুন)</p>
+    <p class="version-text">v5.1 | ডিফল্ট: manager / manager (নিজে লিখুন)</p>
     <p class="developer-text">👨‍💻 Developer: Nasim Uddin</p>
   </div>
 </div>
@@ -374,26 +374,26 @@
 </div>
 
 <div style="text-align:center;padding:15px;color:#a0aec0;font-size:0.75rem;">
-  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v5.0
+  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v5.1
 </div>
 
 <script>
 // ========== FIREBASE CLOUD SYNC ==========
 // 👇 এখানে পনার Firebase config বসান (নিচের ধাপগুলো দেখুন)
 const firebaseConfig = {
-  apiKey: AIzaSyCeSij2ffOc0tqqamwtQoDNf4HVWlumQOA
-  authDomain: akij-mass-2.firebaseapp.com
-  projectId: akij-mass-2
-  storageBucket: akij-mass-2.firebasestorage.app
-  messagingSenderId: 7023860854
-  appId: 1:7023860854:web:24b346e8117a7c7549d357
+  apiKey: "AIzaSyCeSij2ffOc0tqqamwtQoDNf4HVWlumQOA",
+  authDomain: "akij-mass-2.firebaseapp.com",
+  projectId: "akij-mass-2",
+  storageBucket: "akij-mass-2.firebasestorage.app",
+  messagingSenderId: "7023860854",
+  appId: "1:7023860854:web:24b346e8117a7c7549d357"
 };
 
 let db = null;
 let useFirebase = false;
 
 try {
-  if (firebaseConfig.apiKey !== "PASTE_HERE") {
+  if (firebaseConfig.apiKey !== "PLACEHOLDER") {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     useFirebase = true;
@@ -454,7 +454,7 @@ if (useFirebase && db) {
 
 // ========== CACHE BUST ==========
 (function() {
-  var APP_VERSION = '5.0';
+  var APP_VERSION = '5.1';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
