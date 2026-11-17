@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Akij Stuff mass 2 v5.1</title>
+<title>Akij Stuff mass 2 v5.2</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f0f4f8; color: #1a202c; }
@@ -106,7 +106,7 @@
 <!-- CACHE BUST: Force reload if old version detected -->
 <script>
 (function() {
-  var APP_VERSION = '5.1';
+  var APP_VERSION = '5.2';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -147,7 +147,7 @@
     <div style="text-align:center;margin-top:12px;">
       <button onclick="resetLogin()" style="background:none;border:none;color:#e53e3e;text-decoration:underline;cursor:pointer;font-size:0.85rem;">🔄 ডিফল্টে রিসেট করুন</button>
     </div>
-    <p class="version-text">v5.1 | ডিফল্ট: manager / manager (নিজে লিখুন)</p>
+    <p class="version-text">v5.2 | ডিফল্ট: manager / manager (নিজে লিখুন)</p>
     <p class="developer-text">👨‍💻 Developer: Nasim Uddin</p>
   </div>
 </div>
@@ -374,12 +374,15 @@
 </div>
 
 <div style="text-align:center;padding:15px;color:#a0aec0;font-size:0.75rem;">
-  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v5.1
+  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v5.2
 </div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
 // ========== FIREBASE CLOUD SYNC ==========
-// 👇 এখানে পনার Firebase config বসান (নিচের ধাপগুলো দেখুন)
 const firebaseConfig = {
   apiKey: "AIzaSyCeSij2ffOc0tqqamwtQoDNf4HVWlumQOA",
   authDomain: "akij-mass-2.firebaseapp.com",
@@ -391,70 +394,100 @@ const firebaseConfig = {
 
 let db = null;
 let useFirebase = false;
+let firebaseReady = false;
+let cloudUnsubscribe = null;
 
 try {
-  if (firebaseConfig.apiKey !== "PLACEHOLDER") {
-    firebase.initializeApp(firebaseConfig);
+  if (typeof firebase !== 'undefined' && firebaseConfig.apiKey && firebaseConfig.apiKey !== "PLACEHOLDER") {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
     useFirebase = true;
+    firebaseReady = true;
   }
-} catch(e) {}
+} catch (e) {
+  console.error('Firebase initialization failed:', e);
+}
 
-async function syncFromFirebase() {
-  if (!useFirebase || !db) return;
-  const status = $('syncStatus');
-  const hasLocal = localStorage.getItem('akij_stuff_mass2_data_v2');
-
-  try {
-    if (status) status.textContent = "☁️ ক্লাউড থেকে ডাটা আনা হচ্ছে...";
-    const doc = await db.collection("akij_mass2").doc("main_data").get();
-
-    if (doc.exists) {
-      const cloudData = doc.data();
-      if (!hasLocal) {
-        // নতুন ফোনে ডাটা নেই, ক্লাউড থেকে নিন
-        localStorage.setItem('akij_stuff_mass2_data_v2', JSON.stringify(cloudData));
-        if (status) status.innerHTML = '☁️ ডাটা লোড হয়েছে! রিফ্রেশ হচ্ছে...';
-        location.reload();
-        return;
-      } else {
-        // লোকাল ডাটা আছে, তুলনা করুন
-        const localData = JSON.parse(hasLocal);
-        if (JSON.stringify(cloudData) !== JSON.stringify(localData)) {
-          // ক্লাউডে নতুন ডাটা আছে
-          localStorage.setItem('akij_stuff_mass2_data_v2', JSON.stringify(cloudData));
-          if (status) status.innerHTML = '☁️ নতুন ডাটা পাওয়া গেছে! <button onclick="location.reload()" style="padding:4px 10px; background:#4299e1; color:white; border:none; border-radius:4px; cursor:pointer;">রিফ্রেশ করুন</button>';
-          return;
-        }
-      }
-    }
-    if (status) status.textContent = "☁️ সিঙ্ক সম্পূর্ণ";
-  } catch(err) {
-    if (status) status.textContent = "☁️ সিঙ্ক ব্যর্থ (অফলাইন)";
+function setSyncStatus(message, isError = false) {
+  const status = document.getElementById('syncStatus');
+  if (status) {
+    status.textContent = message;
+    status.style.color = isError ? '#c53030' : '#2f855a';
   }
 }
 
-// Real-time listener - অন্য ফোনে চেঞ্জ হলে এখানেও আপডেট দেখাবে
-if (useFirebase && db) {
-  db.collection("akij_mass2").doc("main_data").onSnapshot((doc) => {
-    if (doc.exists) {
-      const cloudData = doc.data();
-      const localRaw = localStorage.getItem('akij_stuff_mass2_data_v2');
-      const localData = localRaw ? JSON.parse(localRaw) : {};
-      if (JSON.stringify(cloudData) !== JSON.stringify(localData)) {
-        localStorage.setItem('akij_stuff_mass2_data_v2', JSON.stringify(cloudData));
-        const status = $('syncStatus');
-        if (status) {
-          status.innerHTML = '☁️ নতুন ডাটা এসেছে! <button onclick="location.reload()" style="padding:4px 10px; background:#4299e1; color:white; border:none; border-radius:4px; cursor:pointer;">রিফ্রেশ করুন</button>';
-        }
-      }
+function refreshDataViews() {
+  if (typeof data === 'undefined') return;
+  populateMonths();
+  renderMembers();
+  renderMealInputs();
+  renderMealTable();
+  renderBazarTable();
+  renderDepositTable();
+  renderReport();
+  renderHisab();
+  renderAllMonths();
+  updateSettingsDisplay();
+  populateSettingsMemberSelect();
+  if (currentRole === 'member' && currentMemberIdx !== null) {
+    const wm = data.members[currentMemberIdx];
+    const welcomeName = document.getElementById('welcomeMemberName');
+    if (welcomeName) welcomeName.textContent = wm ? wm.name : '-';
+  }
+}
+
+async function syncFromFirebase() {
+  if (!useFirebase || !db) {
+    setSyncStatus('☁️ Firebase সংযোগ চালু হয়নি — Firebase SDK/config পরীক্ষা করুন', true);
+    return;
+  }
+  try {
+    setSyncStatus('☁️ ক্লাউড থেকে ডাটা আনা হচ্ছে...');
+    const docRef = db.collection('akij_mass2').doc('main_data');
+    const snap = await docRef.get();
+    const localRaw = localStorage.getItem('akij_stuff_mass2_data_v2');
+
+    if (snap.exists) {
+      const cloudData = snap.data();
+      // Cloud data is the shared source of truth on every device.
+      data = cloudData;
+      localStorage.setItem('akij_stuff_mass2_data_v2', JSON.stringify(cloudData));
+      refreshDataViews();
+      setSyncStatus('☁️ ক্লাউডের ডাটা সিঙ্ক হয়েছে');
+    } else if (localRaw && currentRole === 'admin') {
+      // First-time upload is allowed only after manager login.
+      await docRef.set(JSON.parse(localRaw));
+      setSyncStatus('☁️ প্রথম ডাটা ক্লাউডে সংরক্ষণ হয়েছে');
+    } else {
+      setSyncStatus('☁️ ক্লাউডে এখনো ডাটা নেই — ম্যানেজার লগইন করে ডাটা আপলোড করুন');
     }
-  });
+
+    if (!cloudUnsubscribe) {
+      cloudUnsubscribe = docRef.onSnapshot(snapshot => {
+        if (!snapshot.exists) return;
+        const cloudData = snapshot.data();
+        const cloudJson = JSON.stringify(cloudData);
+        const localJson = localStorage.getItem('akij_stuff_mass2_data_v2');
+        if (cloudJson !== localJson) {
+          data = cloudData;
+          localStorage.setItem('akij_stuff_mass2_data_v2', cloudJson);
+          refreshDataViews();
+          setSyncStatus('☁️ অন্য মোবাইলের আপডেট পাওয়া গেছে');
+        }
+      }, error => {
+        console.error('Firebase live sync failed:', error);
+        setSyncStatus('☁️ লাইভ সিঙ্কে সমস্যা: ' + (error.message || 'অনুমতি/নেটওয়ার্ক পরীক্ষা করুন'), true);
+      });
+    }
+  } catch (err) {
+    console.error('Firebase sync failed:', err);
+    setSyncStatus('☁️ সিঙ্ক ব্যর্থ: ' + (err.message || 'Firebase rules/ইন্টারনেট পরীক্ষা করুন'), true);
+  }
 }
 
 // ========== CACHE BUST ==========
 (function() {
-  var APP_VERSION = '5.1';
+  var APP_VERSION = '5.2';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -527,6 +560,7 @@ function doAdminLogin() {
     $('mainApp').classList.remove('hidden');
     applyRoleUI();
     $('loginError').style.display = 'none';
+    if (useFirebase) syncFromFirebase();
   } else {
     showLoginError('ভুল ম্যানেজার আইডি বা পাসওয়ার্ড!');
   }
@@ -693,10 +727,25 @@ function loadData() {
   return { members: [], meals: {}, bazar: {}, deposits: {}, settings: {} };
 }
 function saveData(dataToSave) {
+  // Members are view-only; only the manager session can save changes.
+  if (currentRole !== 'admin') {
+    alert('শুধু ম্যানেজার ডাটা পরিবর্তন করতে পারবেন।');
+    return false;
+  }
   localStorage.setItem('akij_stuff_mass2_data_v2', JSON.stringify(dataToSave));
   if (useFirebase && db) {
-    db.collection("akij_mass2").doc("main_data").set(dataToSave).catch(e => {});
+    setSyncStatus('☁️ ক্লাউডে সংরক্ষণ হচ্ছে...');
+    db.collection('akij_mass2').doc('main_data').set(dataToSave)
+      .then(() => setSyncStatus('☁️ ডাটা ক্লাউডে সংরক্ষণ হয়েছে'))
+      .catch(e => {
+        console.error('Firebase save failed:', e);
+        setSyncStatus('☁️ ক্লাউডে সেভ হয়নি: ' + (e.message || 'Rules/নেটওয়ার্ক পরীক্ষা করুন'), true);
+        alert('ডাটা এই মোবাইলে সেভ হয়েছে, কিন্তু ক্লাউডে সেভ হয়নি। ইন্টারনেট ও Firebase Rules পরীক্ষা করুন।');
+      });
+  } else {
+    setSyncStatus('⚠️ শুধু এই মোবাইলে সেভ হয়েছে; Firebase সংযুক্ত নয়', true);
   }
+  return true;
 }
 let data = loadData();
 
@@ -1328,8 +1377,5 @@ if (useFirebase) {
   syncFromFirebase();
 }
 </script>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </body>
 </html>
