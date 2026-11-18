@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Akij Stuff mass 2 v5.7 No Billing</title>
+<title>Akij Stuff mass 2 v5.8 Common Member</title>
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f0f4f8; color: #1a202c; }
@@ -115,7 +115,7 @@
 <!-- CACHE BUST: Force reload if old version detected -->
 <script>
 (function() {
-  var APP_VERSION = '5.7';
+  var APP_VERSION = '5.8';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -154,7 +154,7 @@
     <div style="text-align:center;margin-top:12px;">
       <button onclick="resetLogin()" style="background:none;border:none;color:#e53e3e;text-decoration:underline;cursor:pointer;font-size:0.85rem;">🔄 ডিফল্টে রিসেট করুন</button>
     </div>
-    <p class="version-text">v5.7 No Billing</p>
+    <p class="version-text">v5.8 Common Member</p>
     <p class="developer-text">👨‍💻 Developer: Nasim Uddin</p>
   </div>
 </div>
@@ -170,7 +170,7 @@
 
   <div id="memberWelcome" class="member-welcome hidden">
     <h2>🙋 স্বাগতম, <span id="welcomeMemberName">-</span>!</h2>
-    <p>আপনি সদস্য হিসেবে লগইন করেছেন (শুধু দেখার অনুমতি)</p>
+    <p>আপনি কমন সদস্য অ্যাকাউন্টে লগইন করেছেন (সব হিসাব দেখার অনুমতি, পরিবর্তনের অনুমতি নেই)</p>
     <button class="action no-print" onclick="doLogout()" style="margin-top:10px;background:#e53e3e;width:auto;padding:8px 20px;font-size:0.9rem;">🔒 লগআউট</button>
   </div>
 
@@ -383,7 +383,7 @@
 </div>
 
 <div style="text-align:center;padding:15px;color:#a0aec0;font-size:0.75rem;">
-  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v5.7
+  👨‍💻 Developer: Nasim Uddin | Akij Stuff mass 2 v5.8
 </div>
 
 <!-- Firebase SDK -->
@@ -502,7 +502,7 @@ async function syncFromFirebase() {
 
 // ========== CACHE BUST ==========
 (function() {
-  var APP_VERSION = '5.7';
+  var APP_VERSION = '5.8';
   var stored = localStorage.getItem('akij_mass2_version');
   if (stored && stored !== APP_VERSION) {
     localStorage.setItem('akij_mass2_version', APP_VERSION);
@@ -545,17 +545,12 @@ async function finishAuthLogin(role, memberIdx=null) {
   const token = await user.getIdTokenResult(true);
   if (role === 'admin' && token.claims.role !== 'admin') { await auth.signOut(); throw new Error('এই অ্যাকাউন্টে ম্যানেজারের অনুমতি নেই। Firebase Admin claim সেট করতে হবে।'); }
   if (role === 'member' && token.claims.role === 'admin') { await auth.signOut(); throw new Error('ম্যানেজার অ্যাকাউন্ট দিয়ে সদস্য লগইন করা যাবে না।'); }
-  currentRole=role; currentMemberIdx=memberIdx;
-  $('loginScreen').classList.add('hidden'); $('mainApp').classList.remove('hidden');
+  currentRole = role;
+  // A shared member account is not tied to one individual member.
+  currentMemberIdx = null;
+  $('loginScreen').classList.add('hidden');
+  $('mainApp').classList.remove('hidden');
   await syncFromFirebase();
-  if (role === 'member') {
-    const names=(data.members||[]).map((m,i)=>(i+1)+'. '+m.name+' ('+(m.dept||'বিভাগ নেই')+')').join('\n');
-    if (!names) { await auth.signOut(); throw new Error('ক্লাউডে সদস্যের তালিকা পাওয়া যায়নি। ম্যানেজারকে আগে ডাটা আপলোড করতে বলুন।'); }
-    const answer=prompt('তালিকা থেকে নিজের নামের নম্বর লিখুন:\n'+names, '1');
-    const chosen=parseInt(answer,10)-1;
-    if (answer===null || !Number.isInteger(chosen) || chosen<0 || chosen>=data.members.length) { await auth.signOut(); location.reload(); return; }
-    currentMemberIdx=chosen; localStorage.setItem('akij_mass2_member_idx',String(chosen));
-  }
   applyRoleUI();
 }
 async function doAdminLogin() {
@@ -581,23 +576,42 @@ async function doMemberLogin() {
 async function checkLogin() {
   if (authActionInProgress || loginRestoreInProgress) return;
   fillMemberLoginNames();
-  if(!auth) return;
-  const user=auth.currentUser; if(!user) return;
-  loginRestoreInProgress=true;
-  try { const t=await user.getIdTokenResult(true); const role=t.claims.role==='admin'?'admin':'member'; currentRole=role;
-    const saved=localStorage.getItem('akij_mass2_member_idx'); currentMemberIdx=role==='member'?(Number.isInteger(parseInt(saved,10))?parseInt(saved,10):null):null;
-    $('loginScreen').classList.add('hidden'); $('mainApp').classList.remove('hidden'); await syncFromFirebase();
-    if(role==='member' && (currentMemberIdx===null || currentMemberIdx>=data.members.length)){ const names=(data.members||[]).map((m,i)=>(i+1)+'. '+m.name+' ('+(m.dept||'বিভাগ নেই')+')').join('\n'); const a=prompt('তালিকা থেকে নিজের নামের নম্বর লিখুন:\n'+names,'1'); const n=parseInt(a,10)-1; if(a===null||!Number.isInteger(n)||n<0||n>=data.members.length){await auth.signOut();location.reload();return;} currentMemberIdx=n;localStorage.setItem('akij_mass2_member_idx',String(n)); }
+  if (!auth) return;
+  const user = auth.currentUser;
+  if (!user) return;
+  loginRestoreInProgress = true;
+  try {
+    const t = await user.getIdTokenResult(true);
+    const role = t.claims.role === 'admin' ? 'admin' : 'member';
+    currentRole = role;
+    // Shared member login: no name/serial selection on any phone.
+    currentMemberIdx = null;
+    $('loginScreen').classList.add('hidden');
+    $('mainApp').classList.remove('hidden');
+    await syncFromFirebase();
     applyRoleUI();
-  } catch(e){ console.error(e); await auth.signOut(); }
-  finally { loginRestoreInProgress=false; }
+  } catch (e) {
+    console.error(e);
+    await auth.signOut();
+  } finally {
+    loginRestoreInProgress = false;
+  }
 }
 async function doLogout() { currentRole=null; currentMemberIdx=null; localStorage.removeItem('akij_mass2_member_idx'); if(auth) await auth.signOut(); location.reload(); }
 function resetLogin() { showLoginError('নিরাপদ লগইন রিসেট করতে Firebase Console থেকে অ্যাকাউন্ট পাসওয়ার্ড রিসেট করুন।'); }
 function applyRoleUI() {
   const adminEls=document.querySelectorAll('.admin-only'), memberEls=document.querySelectorAll('.member-view'), tabs=document.querySelectorAll('.tab');
   if(currentRole==='admin') { adminEls.forEach(e=>e.classList.remove('hidden')); memberEls.forEach(e=>e.classList.remove('hidden')); tabs.forEach(t=>t.style.display=''); if($('logoutBar'))$('logoutBar').style.display='block'; $('memberWelcome').classList.add('hidden'); }
-  else if(currentRole==='member') { adminEls.forEach(e=>e.classList.add('hidden')); memberEls.forEach(e=>e.classList.remove('hidden')); tabs[8].style.display='none'; tabs[0].style.display='none'; tabs[7].style.display='none'; tabs[6].style.display='none'; if($('logoutBar'))$('logoutBar').style.display='block'; showTab('report'); $('memberWelcome').classList.remove('hidden'); const wm=data.members[currentMemberIdx]; $('welcomeMemberName').textContent=wm?wm.name:'-'; }
+  else if(currentRole==='member') {
+    adminEls.forEach(e=>e.classList.add('hidden'));
+    memberEls.forEach(e=>e.classList.remove('hidden'));
+    // Members can view all data/report tabs, but cannot access manager settings.
+    tabs.forEach((t, i)=>{ t.style.display = i === 9 ? 'none' : ''; });
+    if($('logoutBar')) $('logoutBar').style.display='block';
+    $('memberWelcome').classList.remove('hidden');
+    $('welcomeMemberName').textContent='সকল সদস্য';
+    showTab('report');
+  }
 }
 async function changeCredentials() {
   if(currentRole!=='admin'){alert('শুধু ম্যানেজার পাসওয়ার্ড পরিবর্তন করতে পারবেন।');return;}
